@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    html, body {
+        background-color: #000000 !important;
+    }
+
+    .songs-page {
+        background: #000000 !important;
+        min-height: 100vh;
+        padding: 40px 24px;
+        padding-bottom: 120px; /* Add space for music player */
+    }
+
+    .page-header {
+        max-width: 1200px;
+        margin: 0 auto 40px;
+        background: #000000 !important;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 16px 0;
+    }
+
+    .page-subtitle {
+        color: #e5e5e5;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .songs-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #000000 !important;
+    }
+
+    .song-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 24px;
+        background: #000000 !important;
+    }
+
+    .song-card {
+        background: var(--panel);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .song-card:hover {
+        background: var(--panel-2);
+        transform: translateY(-4px);
+        border-color: var(--accent);
+    }
+
+    .song-card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .song-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+
+    .play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(29, 185, 84, 0.9);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        opacity: 0;
+        transition: all 0.2s ease;
+        z-index: 10;
+    }
+
+    .song-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0 0 8px 0;
+        line-height: 1.3;
+    }
+
+    .song-artist {
+        font-size: 14px;
+        color: #fff;
+        margin: 0 0 8px 0;
+    }
+
+    .song-language {
+        font-size: 12px;
+        color: #fff;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .song-card.playing {
+        border-color: var(--accent);
+        background: var(--panel-2);
+    }
+
+    .song-card.playing .play-overlay {
+        opacity: 1;
+        background: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+        .songs-page {
+            padding: 20px 16px;
+            padding-bottom: 120px;
+        }
+
+        .song-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .song-image {
+            height: 160px;
+        }
+    }
+</style>
+
+<div class="songs-page">
+    <div class="page-header">
+        <h1 class="page-title">Trending Songs</h1>
+        <p class="page-subtitle">Most popular songs right now</p>
+    </div>
+
+    <div class="songs-container">
+        <div class="song-grid">
+            {% for song in songs %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}" {% if not user.is_authenticated %}data-requires-login="true"{% endif %}>
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img src="{{ song.image.url }}" alt="{{ song.title }}" class="song-image">
+                    {% else %}
+                    <div class="song-image" style="background: var(--panel-2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 48px; color: #666;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        {% if user.is_authenticated %}
+                            <i class="fas fa-play"></i>
+                        {% else %}
+                            <i class="fas fa-sign-in-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <h3 class="song-title">{{ song.title }}</h3>
+                <p class="song-artist">{{ song.singer }}</p>
+                <p class="song-language">{{ song.language }}</p>
+            </div>
+            {% empty %}
+            <div style="text-align: center; color: var(--muted); padding: 60px 20px; grid-column: 1 / -1;">
+                <i class="fas fa-music" style="font-size: 48px; margin-bottom: 16px;"></i>
+                <p>No trending songs found.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const songCards = document.querySelectorAll('.song-card');
+    let currentlyPlayingCard = null;
+
+    // Create playlist from all songs
+    const playlist = [
+        {% for song in songs %}
+        {
+            id: {{ song.id }},
+            title: '{{ song.title|escapejs }}',
+            artist: '{{ song.singer|escapejs }}',
+            url: '{{ song.song.url }}',
+            image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Set the playlist for the music player
+    if (window.setPagePlaylist) {
+        window.setPagePlaylist(playlist);
+    }
+
+    songCards.forEach((card, index) => {
+        card.addEventListener('click', function() {
+            {% if not user.is_authenticated %}
+                // Show login modal for non-authenticated users
+                const loginOverlay = document.getElementById('floating-login-overlay');
+                if (loginOverlay) {
+                    loginOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+                return;
+            {% endif %}
+
+            const songUrl = this.dataset.songUrl;
+            const songTitle = this.dataset.songTitle;
+            const songArtist = this.dataset.songArtist;
+            const songImage = this.dataset.songImage;
+            const songId = this.dataset.songId;
+
+            // Remove playing class from previous card
+            if (currentlyPlayingCard) {
+                currentlyPlayingCard.classList.remove('playing');
+            }
+
+            // Add playing class to current card
+            this.classList.add('playing');
+            currentlyPlayingCard = this;
+
+            // Update current song index
+            if (window.currentSongIndex !== undefined) {
+                window.currentSongIndex = index;
+            }
+
+            // Load and play the song
+            if (window.loadSong) {
+                window.loadSong(songUrl, songTitle, songArtist, songImage, songId);
+            }
+
+            // Scroll to music player
+            const musicPlayer = document.getElementById('music-player');
+            if (musicPlayer) {
+                musicPlayer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

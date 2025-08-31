@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* User Profile Page Styles */
+    .user-profile {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #1db954 0%, #1ed760 50%, #1db954 100%);
+        position: relative;
+        padding-bottom: 120px; /* Add space for music player */
+    }
+
+    .user-header {
+        padding: 60px 24px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .user-avatar {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #1db954, #1ed760);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        font-size: 80px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .user-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .user-verification {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .user-verification i {
+        font-size: 16px;
+    }
+
+    .user-name {
+        font-size: 48px;
+        font-weight: 900;
+        color: #fff;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .user-stats {
+        font-size: 16px;
+        color: #e5e5e5;
+        font-weight: 500;
+    }
+
+    .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 8px;
+    }
+
+    .edit-profile-button {
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .edit-profile-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .settings-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .settings-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Stats Section */
+    .stats-section {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 40px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #e5e5e5;
+        font-weight: 500;
+    }
+
+    /* Liked Songs Section */
+    .liked-songs-section {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 40px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 32px 0;
+    }
+
+    .songs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 24px;
+    }
+
+    .song-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .song-card:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-4px);
+        border-color: #1db954;
+    }
+
+    .song-card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .song-image {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+
+    .play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(29, 185, 84, 0.9);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        opacity: 0;
+        transition: all 0.2s ease;
+        z-index: 10;
+    }
+
+    .song-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0 0 8px 0;
+        line-height: 1.3;
+    }
+
+    .song-artist {
+        font-size: 14px;
+        color: #e5e5e5;
+        margin: 0;
+    }
+
+    .song-card.playing {
+        border-color: #1db954;
+        background: rgba(29, 185, 84, 0.1);
+    }
+
+    .song-card.playing .play-overlay {
+        opacity: 1;
+        background: #1db954;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #e5e5e5;
+        padding: 60px 20px;
+        grid-column: 1 / -1;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: #1db954;
+    }
+
+    .empty-state h3 {
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        margin-bottom: 24px;
+    }
+
+    .browse-button {
+        display: inline-block;
+        background: #1db954;
+        color: #000;
+        padding: 12px 24px;
+        border-radius: 24px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .browse-button:hover {
+        background: #1ed760;
+        transform: translateY(-2px);
+    }
+
+    /* Back button */
+    .back-button {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        background: rgba(0, 0, 0, 0.3);
+        border: none;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: rgba(0, 0, 0, 0.5);
+        transform: translateX(-4px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .user-profile {
+            padding-bottom: 120px;
+        }
+
+        .user-info {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 150px;
+            height: 150px;
+            font-size: 60px;
+        }
+
+        .user-name {
+            font-size: 36px;
+        }
+
+        .user-actions {
+            justify-content: center;
+        }
+
+        .stats-section,
+        .liked-songs-section {
+            padding: 24px 16px;
+        }
+
+        .section-title {
+            font-size: 24px;
+        }
+
+        .songs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .song-image {
+            height: 120px;
+        }
+    }
+</style>
+
+<div class="user-profile">
+    <a href="{% url 'home' %}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Home
+    </a>
+
+    <div class="user-header">
+        <div class="user-info">
+            <div class="user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="user-details">
+                <div class="user-verification">
+                    <i class="fas fa-check-circle"></i>
+                    Premium User
+                </div>
+                <h1 class="user-name">{{ user.username }}</h1>
+                <div class="user-stats">{{ monthly_listeners }} total plays</div>
+                <div class="user-actions">
+                    <a href="#" class="edit-profile-button">Edit Profile</a>
+                    <button class="settings-button">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ liked_songs.count }}</div>
+                <div class="stat-label">Liked Songs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ favorite_artists|length }}</div>
+                <div class="stat-label">Favorite Artists</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_play_count|floatformat:0 }}</div>
+                <div class="stat-label">Total Plays</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">30</div>
+                <div class="stat-label">Days Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="liked-songs-section">
+        <h2 class="section-title">Your Liked Songs</h2>
+        <div class="songs-grid">
+            {% for song in liked_songs %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}">
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img src="{{ song.image.url }}" alt="{{ song.title }}" class="song-image">
+                    {% else %}
+                    <div class="song-image" style="background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 48px; color: #e5e5e5;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                <h3 class="song-title">{{ song.title }}</h3>
+                <p class="song-artist">{{ song.singer }}</p>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-heart"></i>
+                <h3>No liked songs yet</h3>
+                <p>Start liking songs to see them here</p>
+                <a href="{% url 'all_songs' %}" class="browse-button">Browse Songs</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const songCards = document.querySelectorAll('.song-card');
+    let currentlyPlayingCard = null;
+
+    // Create playlist from all songs
+    const playlist = [
+        {% for song in liked_songs %}
+        {
+            id: {{ song.id }},
+            title: '{{ song.title|escapejs }}',
+            artist: '{{ song.singer|escapejs }}',
+            url: '{{ song.song.url }}',
+            image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Set the playlist for the music player
+    if (window.setPlaylist) {
+        window.setPlaylist(playlist);
+    }
+
+    songCards.forEach((card, index) => {
+        card.addEventListener('click', function() {
+            const songUrl = this.dataset.songUrl;
+            const songTitle = this.dataset.songTitle;
+            const songArtist = this.dataset.songArtist;
+            const songImage = this.dataset.songImage;
+            const songId = this.dataset.songId;
+
+            // Remove playing class from previous card
+            if (currentlyPlayingCard) {
+                currentlyPlayingCard.classList.remove('playing');
+            }
+
+            // Add playing class to current card
+            this.classList.add('playing');
+            currentlyPlayingCard = this;
+
+            // Update current song index
+            if (window.currentSongIndex !== undefined) {
+                window.currentSongIndex = index;
+            }
+
+            // Load and play the song
+            if (window.loadSong) {
+                window.loadSong(songUrl, songTitle, songArtist, songImage, songId);
+            }
+
+            // Scroll to music player
+            const musicPlayer = document.getElementById('music-player');
+            if (musicPlayer) {
+                musicPlayer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}
+
+
+

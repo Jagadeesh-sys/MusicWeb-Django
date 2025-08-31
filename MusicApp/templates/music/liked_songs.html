@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* Liked Songs Page Styles - Singer Detail Style */
+    .liked-songs-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #1db954 0%, #1ed760 50%, #1db954 100%);
+        position: relative;
+        padding-bottom: 120px; /* Add space for music player */
+    }
+
+    .page-header {
+        padding: 60px 24px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .page-info {
+        display: flex;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .page-avatar {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #1db954, #1ed760);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        font-size: 80px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .page-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .page-verification {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .page-verification i {
+        font-size: 16px;
+    }
+
+    .page-title {
+        font-size: 48px;
+        font-weight: 900;
+        color: #fff;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .page-stats {
+        font-size: 16px;
+        color: #e5e5e5;
+        font-weight: 500;
+    }
+
+    .page-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 8px;
+    }
+
+    .play-all-button {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #1db954;
+        border: none;
+        color: #000;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 16px rgba(29, 185, 84, 0.3);
+    }
+
+    .play-all-button:hover {
+        background: #1ed760;
+        transform: scale(1.05);
+    }
+
+    .shuffle-button {
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .shuffle-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .more-options {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .more-options:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Songs Section */
+    .songs-section {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 40px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 32px 0;
+    }
+
+    .songs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .song-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid transparent;
+    }
+
+    .song-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+        border-color: #1db954;
+    }
+
+    .song-item.playing {
+        background: rgba(29, 185, 84, 0.1);
+        border-color: #1db954;
+    }
+
+    .song-rank {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1db954;
+        min-width: 30px;
+    }
+
+    .song-thumbnail {
+        width: 56px;
+        height: 56px;
+        border-radius: 8px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .song-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .song-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0;
+    }
+
+    .song-stats {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 14px;
+        color: #a1a1a1;
+    }
+
+    .song-artist {
+        font-weight: 500;
+    }
+
+    .song-language {
+        font-weight: 500;
+    }
+
+    .song-play-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        opacity: 0;
+    }
+
+    .song-item:hover .song-play-button {
+        opacity: 1;
+    }
+
+    .song-play-button:hover {
+        background: #1db954;
+        color: #000;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #e5e5e5;
+        padding: 60px 20px;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: #1db954;
+    }
+
+    .empty-state h3 {
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        margin-bottom: 24px;
+    }
+
+    .browse-button {
+        display: inline-block;
+        background: #1db954;
+        color: #000;
+        padding: 12px 24px;
+        border-radius: 24px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .browse-button:hover {
+        background: #1ed760;
+        transform: translateY(-2px);
+    }
+
+    /* Back button */
+    .back-button {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        background: rgba(0, 0, 0, 0.3);
+        border: none;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: rgba(0, 0, 0, 0.5);
+        transform: translateX(-4px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .liked-songs-page {
+            padding-bottom: 120px;
+        }
+
+        .page-info {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .page-avatar {
+            width: 150px;
+            height: 150px;
+            font-size: 60px;
+        }
+
+        .page-title {
+            font-size: 36px;
+        }
+
+        .page-actions {
+            justify-content: center;
+        }
+
+        .songs-section {
+            padding: 24px 16px;
+        }
+
+        .section-title {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<div class="liked-songs-page">
+    <a href="{% url 'home' %}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Home
+    </a>
+
+    <div class="page-header">
+        <div class="page-info">
+            <div class="page-avatar">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="page-details">
+                <div class="page-verification">
+                    <i class="fas fa-check-circle"></i>
+                    Your Collection
+                </div>
+                <h1 class="page-title">Liked Songs</h1>
+                <div class="page-stats">{{ liked_songs.count }} songs • Your favorite tracks</div>
+                <div class="page-actions">
+                    <button class="play-all-button" onclick="playAllSongs()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="shuffle-button">
+                        <i class="fas fa-random"></i>
+                        Shuffle
+                    </button>
+                    <button class="more-options">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="songs-section">
+        <h2 class="section-title">All Songs</h2>
+        <div class="songs-list">
+            {% for song in liked_songs %}
+            <div class="song-item" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}">
+                <div class="song-rank">{{ forloop.counter }}</div>
+                {% if song.image %}
+                <img src="{{ song.image.url }}" alt="{{ song.title }}" class="song-thumbnail">
+                {% else %}
+                <div class="song-thumbnail" style="background: #404040; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-music" style="font-size: 24px; color: #666;"></i>
+                </div>
+                {% endif %}
+                <div class="song-info">
+                    <h3 class="song-title">{{ song.title }}</h3>
+                    <div class="song-stats">
+                        <span class="song-artist">{{ song.singer }}</span>
+                        <span class="song-language">{{ song.language }}</span>
+                    </div>
+                </div>
+                <button class="song-play-button">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-heart"></i>
+                <h3>No liked songs yet</h3>
+                <p>Start liking songs to see them here</p>
+                <a href="{% url 'all_songs' %}" class="browse-button">Browse Songs</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const songItems = document.querySelectorAll('.song-item');
+    let currentlyPlayingItem = null;
+
+    // Create playlist from all songs
+    const playlist = [
+        {% for song in liked_songs %}
+        {
+            id: {{ song.id }},
+            title: '{{ song.title|escapejs }}',
+            artist: '{{ song.singer|escapejs }}',
+            url: '{{ song.song.url }}',
+            image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Set the playlist for the music player
+    if (window.setPlaylist) {
+        window.setPlaylist(playlist);
+    }
+
+    songItems.forEach((item, index) => {
+        item.addEventListener('click', function() {
+            const songUrl = this.dataset.songUrl;
+            const songTitle = this.dataset.songTitle;
+            const songArtist = this.dataset.songArtist;
+            const songImage = this.dataset.songImage;
+            const songId = this.dataset.songId;
+
+            // Remove playing class from previous item
+            if (currentlyPlayingItem) {
+                currentlyPlayingItem.classList.remove('playing');
+            }
+
+            // Add playing class to current item
+            this.classList.add('playing');
+            currentlyPlayingItem = this;
+
+            // Update current song index
+            if (window.currentSongIndex !== undefined) {
+                window.currentSongIndex = index;
+            }
+
+            // Load and play the song
+            if (window.loadSong) {
+                window.loadSong(songUrl, songTitle, songArtist, songImage, songId);
+            }
+
+            // Scroll to music player
+            const musicPlayer = document.getElementById('music-player');
+            if (musicPlayer) {
+                musicPlayer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+    });
+});
+
+function playAllSongs() {
+    const firstSong = document.querySelector('.song-item');
+    if (firstSong) {
+        firstSong.click();
+    }
+}
+</script>
+
+{% endblock %}

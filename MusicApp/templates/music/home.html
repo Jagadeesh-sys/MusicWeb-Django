@@ -1,0 +1,1504 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* Floating Login Modal Styles */
+    .floating-login-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+    }
+
+    .floating-login-modal {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        border-radius: 16px;
+        padding: 25px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid #333;
+        position: relative;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .floating-login-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .floating-login-header h2 {
+        color: #fff;
+        font-size: 24px;
+        margin: 0 0 8px 0;
+        font-weight: 700;
+    }
+
+    .floating-login-header p {
+        color: #ccc;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .floating-login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    /* Form field spacing for signup forms */
+    #signup-forms-container .floating-login-form {
+        gap: 8px;
+    }
+    
+    #signup-forms-container .floating-login-input {
+        margin-bottom: 8px;
+    }
+
+    .floating-login-input {
+        background: #333;
+        border: 2px solid #444;
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: #fff;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    .floating-login-input:focus {
+        outline: none;
+        border-color: #1db954;
+        background: #2a2a2a;
+    }
+
+    .floating-login-input::placeholder {
+        color: #888;
+    }
+
+    .floating-login-btn {
+        background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .floating-login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(29, 185, 84, 0.3);
+    }
+
+    .floating-login-footer {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #333;
+    }
+
+    .floating-login-footer a {
+        color: #1db954;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .floating-login-footer a:hover {
+        color: #1ed760;
+    }
+
+    .floating-login-close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .floating-login-close:hover {
+        color: #fff;
+    }
+
+    .floating-login-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+    }
+
+    .floating-login-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(29, 185, 84, 0.4);
+    }
+
+    .floating-login-toggle i {
+        margin-right: 8px;
+    }
+    
+    /* Responsive design for smaller screens */
+    @media (max-width: 600px) {
+        .floating-login-modal {
+            max-width: 95%;
+            padding: 20px 15px;
+        }
+        
+        .floating-login-input {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+        
+        .floating-login-btn {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+    }
+
+    /* Floating Login Divider */
+    .floating-login-divider {
+        text-align: center;
+        margin: 15px 0;
+        position: relative;
+    }
+
+    .floating-login-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #444;
+    }
+
+    .floating-login-divider span {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        padding: 0 15px;
+        color: #888;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Google Login Button */
+    .google-login-btn {
+        width: 100%;
+        background: #fff;
+        color: #333;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .google-login-btn:hover {
+        background: #f8f9fa;
+        border-color: #ccc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .google-login-btn i {
+        font-size: 18px;
+        color: #4285f4;
+    }
+
+    /* Login Tabs */
+    .floating-login-tabs {
+        display: flex;
+        margin-bottom: 12px;
+        background: #333;
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .login-tab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #888;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .login-tab.active {
+        background: #1db954;
+        color: #fff;
+    }
+
+    .login-tab:hover:not(.active) {
+        color: #ccc;
+    }
+
+    /* Login Subtabs */
+    .floating-login-subtabs {
+        display: flex;
+        margin-bottom: 15px;
+        background: #2a2a2a;
+        border-radius: 6px;
+        padding: 3px;
+    }
+
+    .login-subtab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #666;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .login-subtab.active {
+        background: #444;
+        color: #fff;
+    }
+
+    .login-subtab:hover:not(.active) {
+        color: #aaa;
+    }
+
+    /* OTP Input Section */
+    #otp-input-section, #signup-otp-input-section {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #444;
+    }
+
+    /* Login required tooltip */
+    .song-card[data-requires-login="true"] .play-overlay {
+        background: rgba(29, 185, 84, 0.9);
+    }
+
+    .song-card[data-requires-login="true"] .play-overlay i {
+        color: #fff;
+    }
+
+    .song-card[data-requires-login="true"]:hover::after {
+        content: "Login to play";
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .song-card[data-requires-login="true"]:hover::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #333;
+        z-index: 1000;
+        pointer-events: none;
+    }
+    
+    html, body {
+        background-color: #202123 !important;
+    }
+
+    .main-content {
+        padding: 20px;
+        background: #000000 !important;
+        min-height: 100vh;
+        color: var(--text);
+        padding-bottom: 120px; /* Add space for music player */
+    }
+
+    .welcome-section {
+        text-align: center;
+        margin-bottom: 40px;
+        background: #000000 !important;
+    }
+
+    .welcome-text h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+
+    /* Artists Section - Updated to match the image */
+    .artists-section {
+        margin-bottom: 40px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        background: #000000 !important;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding: 0 20px;
+        background: #000000 !important;
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+
+    .show-all-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e5e5e5;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .show-all-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .artists-container {
+        position: relative;
+        padding: 0 20px;
+        background: #000000 !important;
+    }
+
+    .artists-row {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding: 10px 0;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        background: #000000 !important;
+    }
+
+    .artists-row::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .artist-card {
+        flex: 0 0 auto;
+        width: 160px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+        background: #000000 !important;
+    }
+
+    .artist-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .artist-image {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 2px solid transparent;
+        transition: border-color 0.2s ease;
+    }
+
+    .artist-card:hover .artist-image {
+        border-color: var(--accent);
+    }
+
+    .artist-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0 0 4px 0;
+        line-height: 1.2;
+    }
+
+    .artist-category {
+        font-size: 12px;
+        color: #a1a1a1;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* Language Songs Sections */
+    .language-section {
+        margin-bottom: 40px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        background: #000000 !important;
+    }
+
+    .language-section .section-header {
+        padding: 0 20px;
+        background: #000000 !important;
+    }
+
+    .songs-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 20px;
+        padding: 0 20px;
+        background: #000000 !important;
+    }
+
+    .song-card {
+        background: var(--panel);
+        padding: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .song-card:hover {
+        background: var(--panel-2);
+        transform: translateY(-4px);
+        border-color: var(--accent);
+    }
+
+    .song-card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .song-thumb {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+    .play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(29, 185, 84, 0.9);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        opacity: 0;
+        transition: all 0.2s ease;
+        z-index: 10;
+    }
+
+    .song-title {
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 8px 0;
+        font-size: 14px;
+    }
+
+    .song-artist {
+        color: var(--muted);
+        color: #fff;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .song-card.playing {
+        border-color: var(--accent);
+        background: var(--panel-2);
+    }
+
+    .song-card.playing .play-overlay {
+        opacity: 1;
+        background: var(--accent);
+    }
+
+    /* Responsive design */
+    @media (max-width: 1200px) {
+        .songs-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .songs-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding-bottom: 120px;
+        }
+
+        .artists-row {
+            gap: 16px;
+        }
+
+        .artist-card {
+            width: 140px;
+        }
+
+        .artist-image {
+            width: 120px;
+            height: 120px;
+        }
+
+        .songs-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .songs-grid {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 12px;
+        }
+    }
+</style>
+
+<div class="main-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-text">
+            {% if user.is_authenticated %}
+                <h1>Welcome {{ user.name }}</h1>
+            {% else %}
+                <h1>Welcome to JSMusic</h1>
+                <p style="font-size: 18px; color: #ccc; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Discover millions of songs from Telugu, Hindi, Tamil, and English artists. 
+                    <br>Login to create your playlist and enjoy personalized music experience.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Artists Section - Displaying artist images -->
+    <div class="artists-section">
+        <div class="section-header">
+            <h2 class="section-title">Top Artists</h2>
+            <a href="{% url 'artists' %}" class="show-all-btn">Show all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="artists-container">
+            <div class="artists-row">
+                {% for artist in top_artists %}
+                <a href="{% url 'singer_detail' artist.name %}" class="artist-card" style="text-decoration: none; color: inherit;">
+                    <img src="{{ artist.image.url }}" alt="{{ artist.name }}" class="artist-image">
+                    <h3 class="artist-name">{{ artist.name }}</h3>
+                    <p class="artist-category">Artist</p>
+                </a>
+                {% empty %}
+                <div style="text-align: center; color: var(--muted); padding: 40px; width: 100%;">
+                    <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px;"></i>
+                    <p>No artists found.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Language-wise Songs Sections -->
+    <!-- Telugu Songs -->
+    {% if telugu_songs %}
+    <div class="language-section">
+        <div class="section-header">
+            <h2 class="section-title">Telugu Songs</h2>
+            <a href="{% url 'telugu_songs' %}" class="show-all-btn">Show all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="songs-grid">
+            {% for song in telugu_songs|slice:":12" %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}" {% if not user.is_authenticated %}data-requires-login="true"{% endif %}>
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img class="song-thumb" src="{{ song.image.url }}" alt="{{ song.title }}">
+                    {% else %}
+                    <div class="song-thumb" style="background: var(--panel-2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 32px; color: var(--muted);"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        {% if user.is_authenticated %}
+                            <i class="fas fa-play"></i>
+                        {% else %}
+                            <i class="fas fa-sign-in-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="song-title">{{ song.title }}</p>
+                <p class="song-artist">{{ song.singer }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Hindi Songs -->
+    {% if hindi_songs %}
+    <div class="language-section">
+        <div class="section-header">
+            <h2 class="section-title">Hindi Songs</h2>
+            <a href="{% url 'hindi_songs' %}" class="show-all-btn">Show all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="songs-grid">
+            {% for song in hindi_songs|slice:":12" %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}" {% if not user.is_authenticated %}data-requires-login="true"{% endif %}>
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img class="song-thumb" src="{{ song.image.url }}" alt="{{ song.title }}">
+                    {% else %}
+                    <div class="song-thumb" style="background: var(--panel-2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 32px; color: var(--muted);"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        {% if user.is_authenticated %}
+                            <i class="fas fa-play"></i>
+                        {% else %}
+                            <i class="fas fa-sign-in-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="song-title">{{ song.title }}</p>
+                <p class="song-artist">{{ song.singer }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tamil Songs -->
+    {% if tamil_songs %}
+    <div class="language-section">
+        <div class="section-header">
+            <h2 class="section-title">Tamil Songs</h2>
+            <a href="{% url 'tamil_songs' %}" class="show-all-btn">Show all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="songs-grid">
+            {% for song in tamil_songs|slice:":12" %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}" {% if not user.is_authenticated %}data-requires-login="true"{% endif %}>
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img class="song-thumb" src="{{ song.image.url }}" alt="{{ song.title }}">
+                    {% else %}
+                    <div class="song-thumb" style="background: var(--panel-2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 32px; color: var(--muted);"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        {% if user.is_authenticated %}
+                            <i class="fas fa-play"></i>
+                        {% else %}
+                            <i class="fas fa-sign-in-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="song-title">{{ song.title }}</p>
+                <p class="song-artist">{{ song.singer }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- English Songs -->
+    {% if english_songs %}
+    <div class="language-section">
+        <div class="section-header">
+            <h2 class="section-title">English Songs</h2>
+            <a href="{% url 'english_songs' %}" class="show-all-btn">Show all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="songs-grid">
+            {% for song in english_songs|slice:":12" %}
+            <div class="song-card" data-song-url="{{ song.song.url }}" data-song-title="{{ song.title }}" data-song-artist="{{ song.singer }}" data-song-image="{% if song.image %}{{ song.image.url }}{% else %}{% static 'images/music.jpg' %}{% endif %}" data-song-id="{{ song.id }}" {% if not user.is_authenticated %}data-requires-login="true"{% endif %}>
+                <div style="position: relative;">
+                    {% if song.image %}
+                    <img class="song-thumb" src="{{ song.image.url }}" alt="{{ song.title }}">
+                    {% else %}
+                    <div class="song-thumb" style="background: var(--panel-2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-music" style="font-size: 32px; color: var(--muted);"></i>
+                    </div>
+                    {% endif %}
+                    <div class="play-overlay">
+                        {% if user.is_authenticated %}
+                            <i class="fas fa-play"></i>
+                        {% else %}
+                            <i class="fas fa-sign-in-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="song-title">{{ song.title }}</p>
+                <p class="song-artist">{{ song.singer }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Floating Login Modal -->
+{% if not user.is_authenticated %}
+<button class="floating-login-toggle" id="floating-login-toggle">
+    <i class="fas fa-user-circle"></i>
+    Login / Signup
+</button>
+
+<div class="floating-login-overlay" id="floating-login-overlay" style="display: none;">
+    <div class="floating-login-modal">
+        <button class="floating-login-close" id="floating-login-close">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="floating-login-header">
+            <h2>Welcome to JSMusic</h2>
+            <p>Login or create your account</p>
+        </div>
+        
+        <div class="floating-login-tabs">
+            <button class="login-tab active" data-tab="login">Login</button>
+            <button class="login-tab" data-tab="signup">Sign Up</button>
+        </div>
+        
+        <div class="floating-login-subtabs" id="login-subtabs">
+            <button class="login-subtab active" data-subtab="password">Password</button>
+            <button class="login-subtab" data-subtab="otp">OTP</button>
+        </div>
+        
+        <div class="floating-login-subtabs" id="signup-subtabs" style="display: none;">
+            <button class="login-subtab active" data-subtab="password-signup">Password</button>
+            <button class="login-subtab" data-subtab="otp-signup">OTP</button>
+        </div>
+        
+        <!-- Login Forms Container -->
+        <div id="login-forms-container">
+            <!-- Password Login Form -->
+            <form class="floating-login-form" id="password-login-form" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div style="background: {% if message.tags == 'error' %}#ff4444{% else %}#1db954{% endif %}; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <input type="text" name="username" class="floating-login-input" placeholder="Username" required>
+                <input type="password" name="password" class="floating-login-input" placeholder="Password" required>
+                <button type="submit" class="floating-login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </form>
+            
+            <!-- OTP Login Form -->
+            <form class="floating-login-form" id="otp-login-form" style="display: none;">
+                {% csrf_token %}
+                
+                <div id="otp-message" style="display: none; background: #1db954; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;"></div>
+                
+                <input type="tel" id="otp-mobile" class="floating-login-input" placeholder="Mobile Number" required pattern="[0-9]{10}" maxlength="10">
+                <button type="button" class="floating-login-btn" id="send-otp-btn" onclick="sendOTP()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send OTP
+                </button>
+                
+                <div id="otp-input-section" style="display: none;">
+                    <input type="text" id="otp-input" class="floating-login-input" placeholder="Enter 6-digit OTP" maxlength="6" pattern="[0-9]{6}">
+                    <button type="button" class="floating-login-btn" onclick="verifyOTP()">
+                        <i class="fas fa-check"></i>
+                        Verify OTP
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Signup Forms Container -->
+        <div id="signup-forms-container" style="display: none;">
+            <!-- Password Signup Form -->
+            <form class="floating-login-form" id="password-signup-form">
+                {% csrf_token %}
+                
+                <div id="signup-message" style="display: none; background: #1db954; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;"></div>
+                
+                <input type="text" name="name" class="floating-login-input" placeholder="Full Name" required>
+                <input type="text" name="username" class="floating-login-input" placeholder="Username" required>
+                <input type="tel" name="mobile" class="floating-login-input" placeholder="Mobile Number" required pattern="[0-9]{10}" maxlength="10">
+                <input type="password" name="password" class="floating-login-input" placeholder="Password" required>
+                <input type="password" name="confirm-password" class="floating-login-input" placeholder="Confirm Password" required>
+                <button type="button" class="floating-login-btn" onclick="handlePasswordSignup()">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+            
+            <!-- OTP Signup Form -->
+            <form class="floating-login-form" id="otp-signup-form" style="display: none;">
+                {% csrf_token %}
+                
+                <div id="signup-otp-message" style="display: none; background: #1db954; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;"></div>
+                
+                <input type="text" id="signup-name" class="floating-login-input" placeholder="Full Name" required>
+                <input type="text" id="signup-username" class="floating-login-input" placeholder="Username" required>
+                <input type="tel" id="signup-mobile" class="floating-login-input" placeholder="Mobile Number" required pattern="[0-9]{10}" maxlength="10">
+                <input type="password" id="signup-password" class="floating-login-input" placeholder="Password" required>
+                <input type="password" id="signup-confirm-password" class="floating-login-input" placeholder="Confirm Password" required>
+                
+                <button type="button" class="floating-login-btn" id="send-signup-otp-btn" onclick="sendSignupOTP()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send OTP
+                </button>
+                
+                <div id="signup-otp-input-section" style="display: none;">
+                    <input type="text" id="signup-otp-input" class="floating-login-input" placeholder="Enter 6-digit OTP" maxlength="6" pattern="[0-9]{6}">
+                    <button type="button" class="floating-login-btn" onclick="verifySignupOTP()">
+                        <i class="fas fa-check"></i>
+                        Verify & Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="floating-login-divider">
+            <span>or</span>
+        </div>
+        
+        <button type="button" class="google-login-btn" onclick="googleLogin()">
+            <i class="fab fa-google"></i>
+            Continue with Google
+        </button>
+        
+        <div class="floating-login-footer">
+            <p>All authentication options available above</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const songCards = document.querySelectorAll('.song-card');
+    let currentlyPlayingCard = null;
+
+    // Create playlist from all songs on the page
+    const allSongs = [];
+    
+    {% for song in telugu_songs|slice:":12" %}
+    allSongs.push({
+        id: {{ song.id }},
+        title: '{{ song.title|escapejs }}',
+        artist: '{{ song.singer|escapejs }}',
+        url: '{{ song.song.url }}',
+        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+    });
+    {% endfor %}
+    
+    {% for song in hindi_songs|slice:":12" %}
+    allSongs.push({
+        id: {{ song.id }},
+        title: '{{ song.title|escapejs }}',
+        artist: '{{ song.singer|escapejs }}',
+        url: '{{ song.song.url }}',
+        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+    });
+    {% endfor %}
+    
+    {% for song in tamil_songs|slice:":12" %}
+    allSongs.push({
+        id: {{ song.id }},
+        title: '{{ song.title|escapejs }}',
+        artist: '{{ song.singer|escapejs }}',
+        url: '{{ song.song.url }}',
+        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+    });
+    {% endfor %}
+    
+    {% for song in english_songs|slice:":12" %}
+    allSongs.push({
+        id: {{ song.id }},
+        title: '{{ song.title|escapejs }}',
+        artist: '{{ song.singer|escapejs }}',
+        url: '{{ song.song.url }}',
+        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+    });
+    {% endfor %}
+
+    // Set the playlist for the music player
+    if (window.setPagePlaylist) {
+        window.setPagePlaylist(allSongs);
+    }
+
+    songCards.forEach((card, index) => {
+        card.addEventListener('click', function() {
+            {% if not user.is_authenticated %}
+                // Show login modal for non-authenticated users
+                const loginOverlay = document.getElementById('floating-login-overlay');
+                if (loginOverlay) {
+                    loginOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+                return;
+            {% endif %}
+            
+            const songUrl = this.dataset.songUrl;
+            const songTitle = this.dataset.songTitle;
+            const songArtist = this.dataset.songArtist;
+            const songImage = this.dataset.songImage;
+            const songId = this.dataset.songId;
+
+            // Remove playing class from previous card
+            if (currentlyPlayingCard) {
+                currentlyPlayingCard.classList.remove('playing');
+            }
+
+            // Add playing class to current card
+            this.classList.add('playing');
+            currentlyPlayingCard = this;
+
+            // Update current song index
+            if (window.currentSongIndex !== undefined) {
+                window.currentSongIndex = index;
+            }
+
+            // Load and play the song
+            if (window.loadSong) {
+                window.loadSong(songUrl, songTitle, songArtist, songImage, songId);
+            }
+
+            // Scroll to music player
+            const musicPlayer = document.getElementById('music-player');
+            if (musicPlayer) {
+                musicPlayer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+    });
+});
+
+// Floating Login Modal Functionality
+{% if not user.is_authenticated %}
+document.addEventListener('DOMContentLoaded', function() {
+    const loginToggle = document.getElementById('floating-login-toggle');
+    const loginOverlay = document.getElementById('floating-login-overlay');
+    const loginClose = document.getElementById('floating-login-close');
+
+    if (loginToggle && loginOverlay && loginClose) {
+        // Open login modal
+        loginToggle.addEventListener('click', function() {
+            loginOverlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close login modal
+        loginClose.addEventListener('click', function() {
+            loginOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        // Close modal when clicking outside
+        loginOverlay.addEventListener('click', function(e) {
+            if (e.target === loginOverlay) {
+                loginOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && loginOverlay.style.display === 'flex') {
+                loginOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+});
+{% endif %}
+
+// Google Login Function
+function googleLogin() {
+    // For now, show a message that Google login is coming soon
+    // In a real implementation, you would integrate with Google OAuth
+    alert('Google login integration coming soon! Please use mobile number login for now.');
+    
+    // You can implement Google OAuth here:
+    // 1. Redirect to Google OAuth endpoint
+    // 2. Handle the OAuth callback
+    // 3. Create or authenticate user
+}
+
+// OTP Login Functions
+function sendOTP() {
+    const mobile = document.getElementById('otp-mobile').value;
+    const messageDiv = document.getElementById('otp-message');
+    const sendBtn = document.getElementById('send-otp-btn');
+    
+    if (!mobile || mobile.length !== 10) {
+        showOTPMessage('Please enter a valid 10-digit mobile number', 'error');
+        return;
+    }
+    
+    // Disable send button and show loading
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    // Send OTP request
+    fetch('{% url "send_otp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `mobile=${mobile}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showOTPMessage(data.message, 'success');
+            document.getElementById('otp-input-section').style.display = 'block';
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Resend OTP';
+        } else {
+            showOTPMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showOTPMessage('Error sending OTP. Please try again.', 'error');
+    })
+    .finally(() => {
+        sendBtn.disabled = false;
+    });
+}
+
+function verifyOTP() {
+    const mobile = document.getElementById('otp-mobile').value;
+    const otp = document.getElementById('otp-input').value;
+    const messageDiv = document.getElementById('otp-message');
+    
+    if (!otp || otp.length !== 6) {
+        showOTPMessage('Please enter a valid 6-digit OTP', 'error');
+        return;
+    }
+    
+    // Verify OTP
+    fetch('{% url "verify_otp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `mobile=${mobile}&otp=${otp}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showOTPMessage(data.message, 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1000);
+        } else {
+            showOTPMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showOTPMessage('Error verifying OTP. Please try again.', 'error');
+    });
+}
+
+function showOTPMessage(message, type) {
+    const messageDiv = document.getElementById('otp-message');
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    messageDiv.style.background = type === 'success' ? '#1db954' : '#ff4444';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mainTabs = document.querySelectorAll('.login-tab');
+    const loginSubtabs = document.querySelectorAll('#login-subtabs .login-subtab');
+    const signupSubtabs = document.querySelectorAll('#signup-subtabs .login-subtab');
+    const loginContainer = document.getElementById('login-forms-container');
+    const signupContainer = document.getElementById('signup-forms-container');
+    
+    // Main tab switching (Login/Signup)
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabType = this.dataset.tab;
+            
+            // Update active main tab
+            mainTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide main containers
+            if (tabType === 'login') {
+                loginContainer.style.display = 'block';
+                signupContainer.style.display = 'none';
+                // Show subtabs for login
+                document.getElementById('login-subtabs').style.display = 'flex';
+                document.getElementById('signup-subtabs').style.display = 'none';
+            } else {
+                loginContainer.style.display = 'none';
+                signupContainer.style.display = 'block';
+                // Hide subtabs for login, show signup subtabs
+                document.getElementById('login-subtabs').style.display = 'none';
+                document.getElementById('signup-subtabs').style.display = 'flex';
+            }
+        });
+    });
+    
+    // Login subtab switching (Password/OTP for login)
+    loginSubtabs.forEach(subtab => {
+        subtab.addEventListener('click', function() {
+            const subtabType = this.dataset.subtab;
+            
+            // Update active subtab
+            loginSubtabs.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide login forms
+            const passwordForm = document.getElementById('password-login-form');
+            const otpForm = document.getElementById('otp-login-form');
+            
+            if (subtabType === 'password') {
+                passwordForm.style.display = 'block';
+                otpForm.style.display = 'none';
+            } else {
+                passwordForm.style.display = 'none';
+                otpForm.style.display = 'block';
+            }
+        });
+    });
+    
+    // Signup subtab switching (Password/OTP for signup)
+    signupSubtabs.forEach(subtab => {
+        subtab.addEventListener('click', function() {
+            const subtabType = this.dataset.subtab;
+            
+            // Update active subtab
+            signupSubtabs.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide signup forms
+            const passwordSignupForm = document.getElementById('password-signup-form');
+            const otpSignupForm = document.getElementById('otp-signup-form');
+            
+            if (subtabType === 'password-signup') {
+                passwordSignupForm.style.display = 'block';
+                otpSignupForm.style.display = 'none';
+            } else {
+                passwordSignupForm.style.display = 'none';
+                otpSignupForm.style.display = 'block';
+            }
+        });
+    });
+    
+    // Initialize: show login forms by default
+    loginContainer.style.display = 'block';
+    signupContainer.style.display = 'none';
+    document.getElementById('login-subtabs').style.display = 'flex';
+    document.getElementById('signup-subtabs').style.display = 'none';
+});
+
+// Signup OTP Functions
+function sendSignupOTP() {
+    const name = document.getElementById('signup-name').value;
+    const username = document.getElementById('signup-username').value;
+    const mobile = document.getElementById('signup-mobile').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const messageDiv = document.getElementById('signup-otp-message');
+    const sendBtn = document.getElementById('send-signup-otp-btn');
+    
+    // Validation
+    if (!name || !username || !mobile || !password || !confirmPassword) {
+        showSignupOTPMessage('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (mobile.length !== 10) {
+        showSignupOTPMessage('Please enter a valid 10-digit mobile number', 'error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showSignupOTPMessage('Passwords do not match', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showSignupOTPMessage('Password must be at least 6 characters long', 'error');
+        return;
+    }
+    
+    // Disable send button and show loading
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    // Send OTP request
+    fetch('{% url "send_otp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `mobile=${mobile}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSignupOTPMessage(data.message, 'success');
+            document.getElementById('signup-otp-input-section').style.display = 'block';
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Resend OTP';
+        } else {
+            showSignupOTPMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showSignupOTPMessage('Error sending OTP. Please try again.', 'error');
+    })
+    .finally(() => {
+        sendBtn.disabled = false;
+    });
+}
+
+function verifySignupOTP() {
+    const name = document.getElementById('signup-name').value;
+    const username = document.getElementById('signup-username').value;
+    const mobile = document.getElementById('signup-mobile').value;
+    const password = document.getElementById('signup-password').value;
+    const otp = document.getElementById('signup-otp-input').value;
+    
+    if (!otp || otp.length !== 6) {
+        showSignupOTPMessage('Please enter a valid 6-digit OTP', 'error');
+        return;
+    }
+    
+    // Verify OTP first
+    fetch('{% url "verify_otp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `mobile=${mobile}&otp=${otp}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // OTP verified, now create account
+            createAccount(name, username, mobile, password);
+        } else {
+            showSignupOTPMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showSignupOTPMessage('Error verifying OTP. Please try again.', 'error');
+    });
+}
+
+function createAccount(name, username, mobile, password) {
+    fetch('{% url "signup" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}&mobile=${mobile}&password=${encodeURIComponent(password)}&confirm-password=${encodeURIComponent(password)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSignupOTPMessage(data.message, 'success');
+            setTimeout(() => {
+                // Switch to login tab
+                document.querySelector('[data-tab="login"]').click();
+                // Clear signup form
+                document.getElementById('otp-signup-form').reset();
+                document.getElementById('signup-otp-input-section').style.display = 'none';
+                // Show success message in login tab
+                showOTPMessage('Account created successfully! Please login.', 'success');
+            }, 2000);
+        } else {
+            showSignupOTPMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showSignupOTPMessage('Error creating account. Please try again.', 'error');
+    });
+}
+
+function showSignupOTPMessage(message, type) {
+    const messageDiv = document.getElementById('signup-otp-message');
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    messageDiv.style.background = type === 'success' ? '#1db954' : '#ff4444';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Password Signup Function
+function handlePasswordSignup() {
+    const form = document.getElementById('password-signup-form');
+    const formData = new FormData(form);
+    
+    // Get form values
+    const name = formData.get('name');
+    const username = formData.get('username');
+    const mobile = formData.get('mobile');
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirm-password');
+    const messageDiv = document.getElementById('signup-message');
+    
+    // Validation
+    if (!name || !username || !mobile || !password || !confirmPassword) {
+        showPasswordSignupMessage('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (mobile.length !== 10) {
+        showPasswordSignupMessage('Please enter a valid 10-digit mobile number', 'error');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showPasswordSignupMessage('Passwords do not match', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showPasswordSignupMessage('Password must be at least 6 characters long', 'error');
+        return;
+    }
+    
+    // Submit signup request
+    fetch('{% url "signup" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}&mobile=${mobile}&password=${encodeURIComponent(password)}&confirm-password=${encodeURIComponent(confirmPassword)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showPasswordSignupMessage('Account created successfully! Switching to login...', 'success');
+            setTimeout(() => {
+                // Switch to login tab
+                document.querySelector('[data-tab="login"]').click();
+                // Clear signup form
+                form.reset();
+                // Show success message in login tab
+                    showOTPMessage('Account created successfully! Please login.', 'success');
+            }, 2000);
+        } else {
+            showPasswordSignupMessage(data.message || 'Error creating account. Please try again.', 'error');
+        }
+    })
+    .catch(error => {
+        showPasswordSignupMessage('Error creating account. Please try again.', 'error');
+    });
+}
+
+function showPasswordSignupMessage(message, type) {
+    const messageDiv = document.getElementById('signup-message');
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    messageDiv.style.background = type === 'success' ? '#1db954' : '#ff4444';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,1 @@
+path('artists/', views.artist_list, name='artist_list'),
