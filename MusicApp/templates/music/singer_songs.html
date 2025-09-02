@@ -1,5 +1,5 @@
 {% for singer in singers %}
-    <a href="{% url 'singer_detail' singer.id %}">
+    <a href="{% url 'singer_detail' singer.name %}">
         <img src="{{ singer.image.url }}" alt="{{ singer.name }}">
     </a>
     <ul>

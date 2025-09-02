@@ -442,22 +442,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const songCards = document.querySelectorAll('.song-card');
     let currentlyPlayingCard = null;
 
-    // Create playlist from all songs
-    const playlist = [
-        {% for song in liked_songs %}
-        {
-            id: {{ song.id }},
-            title: '{{ song.title|escapejs }}',
-            artist: '{{ song.singer|escapejs }}',
-            url: '{{ song.song.url }}',
-            image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
+    // Build playlist from DOM
+    const playlist = Array.from(songCards).map(function(card) {
+        return {
+            id: parseInt(card.dataset.songId, 10),
+            title: card.dataset.songTitle,
+            artist: card.dataset.songArtist,
+            url: card.dataset.songUrl,
+            image: card.dataset.songImage
+        };
+    });
 
-    // Set the playlist for the music player
-    if (window.setPlaylist) {
-        window.setPlaylist(playlist);
+    if (window.setPagePlaylist) {
+        window.setPagePlaylist(playlist);
     }
 
     songCards.forEach((card, index) => {
@@ -498,6 +495,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% endblock %}
+
+
 
 
 

@@ -484,6 +484,7 @@
         outline: none;
         cursor: pointer;
         -webkit-appearance: none;
+        appearance: none;
     }
 
     .volume-slider::-webkit-slider-thumb {
@@ -924,24 +925,46 @@
             // Previous button functionality
             prevButton.addEventListener('click', function() {
                 console.log('Previous button clicked. Current index:', currentSongIndex, 'Playlist length:', currentPlaylist.length);
+                // Ensure we have an active playlist
+                if (currentPlaylist.length === 0 && pagePlaylist.length > 0) {
+                    console.log('No active playlist. Hydrating from pagePlaylist.');
+                    currentPlaylist = [...pagePlaylist];
+                    originalPlaylist = [...pagePlaylist];
+                    if (currentSongIndex < 0 || currentSongIndex >= currentPlaylist.length) {
+                        currentSongIndex = 0;
+                    }
+                }
                 if (currentPlaylist.length > 0) {
                     currentSongIndex = (currentSongIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
                     // Update global variable for other pages
                     window.currentSongIndex = currentSongIndex;
                     console.log('New index:', currentSongIndex);
                     playCurrentSong();
+                } else {
+                    console.warn('Previous pressed but playlist is empty.');
                 }
             });
 
             // Next button functionality
             nextButton.addEventListener('click', function() {
                 console.log('Next button clicked. Current index:', currentSongIndex, 'Playlist length:', currentPlaylist.length);
+                // Ensure we have an active playlist
+                if (currentPlaylist.length === 0 && pagePlaylist.length > 0) {
+                    console.log('No active playlist. Hydrating from pagePlaylist.');
+                    currentPlaylist = [...pagePlaylist];
+                    originalPlaylist = [...pagePlaylist];
+                    if (currentSongIndex < 0 || currentSongIndex >= currentPlaylist.length) {
+                        currentSongIndex = 0;
+                    }
+                }
                 if (currentPlaylist.length > 0) {
                     currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
                     // Update global variable for other pages
                     window.currentSongIndex = currentSongIndex;
                     console.log('New index:', currentSongIndex);
                     playCurrentSong();
+                } else {
+                    console.warn('Next pressed but playlist is empty.');
                 }
             });
 
@@ -977,6 +1000,107 @@
                     _playAudio(song);
                 } else {
                     console.log('Cannot play song: invalid index or empty playlist');
+                }
+            }
+
+            // Core function to load a song into the audio element and play it
+            function _playAudio(song) {
+                if (!song || !song.url) {
+                    console.error('Cannot play: invalid song data', song);
+                    return;
+                }
+
+                console.log('[Player] Loading song:', {
+                    id: song.id,
+                    title: song.title,
+                    artist: song.artist,
+                    url: song.url
+                });
+
+                // Update current song state
+                currentSongData = {
+                    id: song.id || null,
+                    title: song.title || 'Unknown',
+                    artist: song.artist || '',
+                    image: song.image || "{% static 'images/music.jpg' %}",
+                    url: song.url
+                };
+
+                // Update UI
+                document.getElementById('current-song-title').textContent = currentSongData.title;
+                document.getElementById('current-song-artist').textContent = currentSongData.artist;
+                document.getElementById('current-album-art').src = currentSongData.image;
+
+                // Update active highlight in any listing on the page
+                try {
+                    const selectors = ['.song-card', '.song-row'];
+                    selectors.forEach(sel => {
+                        document.querySelectorAll(sel + '.playing').forEach(el => el.classList.remove('playing'));
+                    });
+                    if (currentSongData.id !== null && currentSongData.id !== undefined) {
+                        const activeEl = document.querySelector(`[data-song-id="${currentSongData.id}"]`);
+                        if (activeEl) activeEl.classList.add('playing');
+                    }
+                    // Emit a custom event for pages that want to react
+                    const evt = new CustomEvent('player:songchange', { detail: { song: currentSongData, index: currentSongIndex } });
+                    window.dispatchEvent(evt);
+                } catch (e) { /* non-fatal */ }
+
+                // Update like button
+                if (currentSongData.id) {
+                    likeButton.dataset.songId = currentSongData.id;
+                    try { checkIfLiked(currentSongData.id); } catch (e) { /* ignore */ }
+                } else {
+                    likeButton.dataset.songId = '';
+                    likeButton.innerHTML = '<i class="far fa-heart"></i>';
+                    likeButton.classList.remove('liked');
+                }
+
+                // Load and play
+                audioPlayer.src = currentSongData.url;
+                audioPlayer.currentTime = 0;
+                // Ensure immediate resource fetch
+                audioPlayer.load();
+
+                // Attempt immediate play and also on canplay as a fallback
+                const onCanPlay = () => {
+                    audioPlayer.removeEventListener('canplay', onCanPlay);
+                    const pm = audioPlayer.play();
+                    if (pm && pm.then) {
+                        pm.then(() => {
+                            isPlaying = true;
+                            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                            console.log('[Player] Playing after canplay.');
+                            savePlayerState();
+                        }).catch(() => {
+                            isPlaying = false;
+                            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                            console.warn('[Player] Play blocked after canplay.');
+                            savePlayerState();
+                        });
+                    }
+                };
+                audioPlayer.addEventListener('canplay', onCanPlay);
+
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        isPlaying = true;
+                        playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                        console.log('[Player] Playing started.');
+                    }).catch(() => {
+                        // Autoplay might be blocked; update state accordingly
+                        isPlaying = false;
+                        playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                        console.warn('[Player] Play was prevented. Waiting for user interaction.');
+                    }).finally(() => {
+                        savePlayerState();
+                    });
+                } else {
+                    // Fallback
+                    isPlaying = true;
+                    playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                    savePlayerState();
                 }
             }
 
@@ -1172,6 +1296,18 @@
                 pagePlaylist = songs;
                 window.pagePlaylist = pagePlaylist; // Update global reference
             };
+
+            // Global audio error diagnostics
+            audioPlayer.addEventListener('error', function(e) {
+                const mediaError = audioPlayer.error;
+                const code = mediaError ? mediaError.code : 'unknown';
+                console.error('[Player] Audio error:', {
+                    code,
+                    src: audioPlayer.currentSrc || audioPlayer.src,
+                    networkState: audioPlayer.networkState,
+                    readyState: audioPlayer.readyState
+                });
+            });
 
             // Save state before page unload
             window.addEventListener('beforeunload', function() {

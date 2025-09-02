@@ -65,3 +65,5 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Album setup completed!'))
 
+
+

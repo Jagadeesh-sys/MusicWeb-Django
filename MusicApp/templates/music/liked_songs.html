@@ -347,7 +347,7 @@
     }
 </style>
 
-<div class="liked-songs-page">
+<div class="liked-songs-page" data-auth="true">
     <a href="{% url 'home' %}" class="back-button">
         <i class="fas fa-arrow-left"></i>
         Back to Home
@@ -422,22 +422,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const songItems = document.querySelectorAll('.song-item');
     let currentlyPlayingItem = null;
 
-    // Create playlist from all songs
-    const playlist = [
-        {% for song in liked_songs %}
-        {
-            id: {{ song.id }},
-            title: '{{ song.title|escapejs }}',
-            artist: '{{ song.singer|escapejs }}',
-            url: '{{ song.song.url }}',
-            image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
+    // Build playlist from DOM
+    const playlist = Array.from(songItems).map(function(item) {
+        return {
+            id: parseInt(item.dataset.songId, 10),
+            title: item.dataset.songTitle,
+            artist: item.dataset.songArtist,
+            url: item.dataset.songUrl,
+            image: item.dataset.songImage
+        };
+    });
 
-    // Set the playlist for the music player
-    if (window.setPlaylist) {
-        window.setPlaylist(playlist);
+    if (window.setPagePlaylist) {
+        window.setPagePlaylist(playlist);
     }
 
     songItems.forEach((item, index) => {

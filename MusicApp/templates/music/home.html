@@ -641,7 +641,7 @@
     }
 </style>
 
-<div class="main-content">
+<div class="main-content" data-auth="{{ user.is_authenticated|yesno:'true,false' }}">
     <!-- Welcome Section -->
     <div class="welcome-section">
         <div class="welcome-text">
@@ -859,8 +859,13 @@
                 {% csrf_token %}
                 
                 {% if messages %}
+                    <style>
+                        .flash-msg { color: #ffffff; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+                        .flash-error { background: #ff4444; }
+                        .flash-success { background: #1db954; }
+                    </style>
                     {% for message in messages %}
-                        <div style="background: {% if message.tags == 'error' %}#ff4444{% else %}#1db954{% endif %}; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <div class="flash-msg {% if message.tags == 'error' %}flash-error{% else %}flash-success{% endif %}">
                             {{ message }}
                         </div>
                     {% endfor %}
@@ -962,49 +967,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     const songCards = document.querySelectorAll('.song-card');
     let currentlyPlayingCard = null;
+    const isAuthenticated = (document.querySelector('.main-content')?.dataset.auth === 'true');
 
-    // Create playlist from all songs on the page
-    const allSongs = [];
-    
-    {% for song in telugu_songs|slice:":12" %}
-    allSongs.push({
-        id: {{ song.id }},
-        title: '{{ song.title|escapejs }}',
-        artist: '{{ song.singer|escapejs }}',
-        url: '{{ song.song.url }}',
-        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
+    // Create playlist from DOM instead of template loops (avoids invalid JS)
+    const allSongs = Array.from(document.querySelectorAll('.song-card')).map(function(card) {
+        return {
+            id: parseInt(card.dataset.songId, 10),
+            title: card.dataset.songTitle,
+            artist: card.dataset.songArtist,
+            url: card.dataset.songUrl,
+            image: card.dataset.songImage
+        };
     });
-    {% endfor %}
-    
-    {% for song in hindi_songs|slice:":12" %}
-    allSongs.push({
-        id: {{ song.id }},
-        title: '{{ song.title|escapejs }}',
-        artist: '{{ song.singer|escapejs }}',
-        url: '{{ song.song.url }}',
-        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
-    });
-    {% endfor %}
-    
-    {% for song in tamil_songs|slice:":12" %}
-    allSongs.push({
-        id: {{ song.id }},
-        title: '{{ song.title|escapejs }}',
-        artist: '{{ song.singer|escapejs }}',
-        url: '{{ song.song.url }}',
-        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
-    });
-    {% endfor %}
-    
-    {% for song in english_songs|slice:":12" %}
-    allSongs.push({
-        id: {{ song.id }},
-        title: '{{ song.title|escapejs }}',
-        artist: '{{ song.singer|escapejs }}',
-        url: '{{ song.song.url }}',
-        image: '{% if song.image %}{{ song.image.url }}{% else %}{% static "images/music.jpg" %}{% endif %}'
-    });
-    {% endfor %}
 
     // Set the playlist for the music player
     if (window.setPagePlaylist) {
@@ -1013,15 +987,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     songCards.forEach((card, index) => {
         card.addEventListener('click', function() {
-            {% if not user.is_authenticated %}
-                // Show login modal for non-authenticated users
+            if (!isAuthenticated) {
                 const loginOverlay = document.getElementById('floating-login-overlay');
                 if (loginOverlay) {
                     loginOverlay.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 }
                 return;
-            {% endif %}
+            }
             
             const songUrl = this.dataset.songUrl;
             const songTitle = this.dataset.songTitle;
@@ -1057,27 +1030,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Floating Login Modal Functionality
-{% if not user.is_authenticated %}
+// Floating Login Modal Functionality (only runs if elements exist)
 document.addEventListener('DOMContentLoaded', function() {
     const loginToggle = document.getElementById('floating-login-toggle');
     const loginOverlay = document.getElementById('floating-login-overlay');
     const loginClose = document.getElementById('floating-login-close');
 
     if (loginToggle && loginOverlay && loginClose) {
-        // Open login modal
         loginToggle.addEventListener('click', function() {
             loginOverlay.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         });
 
-        // Close login modal
         loginClose.addEventListener('click', function() {
             loginOverlay.style.display = 'none';
             document.body.style.overflow = 'auto';
         });
 
-        // Close modal when clicking outside
         loginOverlay.addEventListener('click', function(e) {
             if (e.target === loginOverlay) {
                 loginOverlay.style.display = 'none';
@@ -1085,7 +1054,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Close modal with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && loginOverlay.style.display === 'flex') {
                 loginOverlay.style.display = 'none';
@@ -1094,7 +1062,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-{% endif %}
 
 // Google Login Function
 function googleLogin() {
