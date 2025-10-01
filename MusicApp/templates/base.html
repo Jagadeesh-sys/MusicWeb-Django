@@ -49,6 +49,14 @@
         font-size: 28px;
     }
 
+    .logo-js {
+        color: #87CEEB; /* Sky blue */
+    }
+
+    .logo-music {
+        color: #1db954; /* Green */
+    }
+
     .nav-links {
         display: flex;
         align-items: center;
@@ -589,14 +597,14 @@
         <div class="navbar-left">
             <a href="{% url 'home' %}" class="logo">
                 <i class="fas fa-music logo-icon"></i>
-                <span>JSMusic</span>
+                <span class="logo-js">JS</span><span class="logo-music">Music</span>
             </a>
     {% else %}
     <!-- Simple header for non-authenticated users -->
     <div style="background: rgba(52, 53, 65, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #404040; padding: 20px 24px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; font-weight: 700; font-size: 24px;">
             <i class="fas fa-music" style="color: #1db954; font-size: 28px;"></i>
-            <span>JSMusic</span>
+            <span class="logo-js">JS</span><span class="logo-music">Music</span>
         </div>
         <div style="display: flex; align-items: center; gap: 16px;">
             <a href="{% url 'signup' %}" style="color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 16px; border-radius: 20px; transition: all 0.2s ease; border: 1px solid #1db954;">Sign Up</a>
@@ -925,18 +933,17 @@
             // Previous button functionality
             prevButton.addEventListener('click', function() {
                 console.log('Previous button clicked. Current index:', currentSongIndex, 'Playlist length:', currentPlaylist.length);
-                // Ensure we have an active playlist
+                
+                // If no active playlist, try to start the page's playlist
                 if (currentPlaylist.length === 0 && pagePlaylist.length > 0) {
                     console.log('No active playlist. Hydrating from pagePlaylist.');
                     currentPlaylist = [...pagePlaylist];
                     originalPlaylist = [...pagePlaylist];
-                    if (currentSongIndex < 0 || currentSongIndex >= currentPlaylist.length) {
-                        currentSongIndex = 0;
-                    }
+                    currentSongIndex = 0; // Start from the beginning
                 }
+
                 if (currentPlaylist.length > 0) {
                     currentSongIndex = (currentSongIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
-                    // Update global variable for other pages
                     window.currentSongIndex = currentSongIndex;
                     console.log('New index:', currentSongIndex);
                     playCurrentSong();
@@ -948,18 +955,17 @@
             // Next button functionality
             nextButton.addEventListener('click', function() {
                 console.log('Next button clicked. Current index:', currentSongIndex, 'Playlist length:', currentPlaylist.length);
-                // Ensure we have an active playlist
+                
+                // If no active playlist, try to start the page's playlist
                 if (currentPlaylist.length === 0 && pagePlaylist.length > 0) {
                     console.log('No active playlist. Hydrating from pagePlaylist.');
                     currentPlaylist = [...pagePlaylist];
                     originalPlaylist = [...pagePlaylist];
-                    if (currentSongIndex < 0 || currentSongIndex >= currentPlaylist.length) {
-                        currentSongIndex = 0;
-                    }
+                    currentSongIndex = 0; // Start from the beginning
                 }
+
                 if (currentPlaylist.length > 0) {
                     currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
-                    // Update global variable for other pages
                     window.currentSongIndex = currentSongIndex;
                     console.log('New index:', currentSongIndex);
                     playCurrentSong();
@@ -985,6 +991,15 @@
                     // Repeat current song
                     audioPlayer.currentTime = 0;
                     audioPlayer.play();
+                } else if (currentPlaylist.length === 0 && pagePlaylist.length > 0) {
+                    // If there's no active playlist, but there's a page playlist, start it.
+                    console.log('Song ended, no active playlist. Hydrating from pagePlaylist.');
+                    currentPlaylist = [...pagePlaylist];
+                    originalPlaylist = [...pagePlaylist];
+                    // Start from the beginning of the new playlist
+                    currentSongIndex = 0;
+                    window.currentSongIndex = 0;
+                    playCurrentSong();
                 } else if (currentPlaylist.length > 0) {
                     // Play next song
                     currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
