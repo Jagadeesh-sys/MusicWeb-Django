@@ -1,8 +1,8 @@
 Django>=5.0.2
-Pillow==10.3.0
 pydub==0.25.1
 pytube==15.0.0
 gunicorn
 psycopg2-binary
 whitenoise
 djangorestframework
+Pillow==10.3.0
