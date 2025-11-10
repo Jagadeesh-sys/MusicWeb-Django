@@ -1310,6 +1310,13 @@
             window.setPagePlaylist = function(songs) {
                 pagePlaylist = songs;
                 window.pagePlaylist = pagePlaylist; // Update global reference
+                
+                // If there's no active playlist yet, hydrate it so Next/Prev work immediately
+                if (Array.isArray(songs) && songs.length > 0 && currentPlaylist.length === 0) {
+                    currentPlaylist = [...songs];
+                    originalPlaylist = [...songs];
+                    window.currentPlaylist = currentPlaylist;
+                }
             };
 
             // Global audio error diagnostics

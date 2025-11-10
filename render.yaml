@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: musicapp
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate --noinput
+    startCommand: gunicorn MusicApp.wsgi:application --access-logfile - --error-logfile - --log-level info
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
