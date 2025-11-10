@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Music'
+    'music'
 ]
 
 MIDDLEWARE = [
@@ -89,7 +89,7 @@ DATABASES = {
     )
 }
 
-AUTH_USER_MODEL = 'Music.CustomUser'
+AUTH_USER_MODEL = 'music.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
