@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: |
-      pip install -r requirements-prod.txt
+      pip install -r requirements.txt
       python MusicApp/manage.py collectstatic --noinput
       python MusicApp/manage.py migrate --noinput
     startCommand: gunicorn MusicApp.wsgi:application --bind 0.0.0.0:$PORT --access-logfile - --error-logfile - --log-level info
